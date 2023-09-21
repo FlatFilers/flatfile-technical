@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+    web:
+        build: ./web
+        restart: always
+        container_name: web
+        depends_on:
+            - db
+            - server
+        ports:
+            - 3000:3000
+        volumes:
+            - $PWD/web/src:/web/src
+    server:
+        build: ./server
+        restart: always
+        container_name: server
+        depends_on:
+            - db
+        ports:
+            - 3001:3001
+        volumes:
+            - $PWD/server/src:/server/src
+    db:
+        image: postgres:13.2-alpine
+        restart: always
+        container_name: db
+        environment:
+            POSTGRES_DB: technical
+            POSTGRES_USER: technical
+            POSTGRES_PASSWORD: technical
+        ports:
+            - 5432:5432
+        volumes:
+            - $PWD/db/scripts:/docker-entrypoint-initdb.d
