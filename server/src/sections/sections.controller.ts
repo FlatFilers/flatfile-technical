@@ -11,7 +11,7 @@ export class SectionsController {
 
   @Get()
   getAllSections(): Promise<SectionEntity[]> {
-    this.logger.log('GET /sections')
+    // this.logger.log('GET /sections')
 
     return this.sectionsService.findAll()
   }
