@@ -35,27 +35,6 @@ function App() {
     })
   })
 
-  // const onCardSubmit = (sectionId: number, title: string) => {
-  //   axios({
-  //     method: 'post',
-  //     url: 'http://localhost:3001/cards',
-  //     data: { sectionId, title }
-  //   }).then((response) => {
-  //     let sectionsClone: ISection[] = [...sections]
-  //     for (let i = 0; i < sectionsClone.length; i++) {
-  //       let section: ISection = sectionsClone[i]
-  //       if (section.id == sectionId) {
-  //         section.cards.push({
-  //           id: response.data.id,
-  //           title: response.data.title,
-  //           section_id: sectionId
-  //         })
-  //         setSections(sectionsClone)
-  //       }
-  //     }
-  //   })
-  // }
-
   const onCardSubmit = (sectionId: number, title: string) => {
     axios({
       method: 'post',
