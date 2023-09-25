@@ -35,46 +35,46 @@ function App() {
     })
   })
 
+  // const onCardSubmit = (sectionId: number, title: string) => {
+  //   axios({
+  //     method: 'post',
+  //     url: 'http://localhost:3001/cards',
+  //     data: { sectionId, title }
+  //   }).then((response) => {
+  //     let sectionsClone: ISection[] = [...sections]
+  //     for (let i = 0; i < sectionsClone.length; i++) {
+  //       let section: ISection = sectionsClone[i]
+  //       if (section.id == sectionId) {
+  //         section.cards.push({
+  //           id: response.data.id,
+  //           title: response.data.title,
+  //           section_id: sectionId
+  //         })
+  //         setSections(sectionsClone)
+  //       }
+  //     }
+  //   })
+  // }
+
   const onCardSubmit = (sectionId: number, title: string) => {
     axios({
       method: 'post',
       url: 'http://localhost:3001/cards',
       data: { sectionId, title }
     }).then((response) => {
-      let sectionsClone: ISection[] = [...sections]
-      for (let i = 0; i < sectionsClone.length; i++) {
-        let section: ISection = sectionsClone[i]
-        if (section.id == sectionId) {
-          section.cards.push({
-            id: response.data.id,
-            title: response.data.title,
-            section_id: sectionId
-          })
-          setSections(sectionsClone)
-        }
+      let sectionsClone: ISection[] = [...sections];
+      let targetSection = sectionsClone.find(section => section.id == sectionId);
+
+      if (targetSection) {
+        targetSection.cards.push({
+          id: response.data.id,
+          title: response.data.title,
+          section_id: sectionId
+        });
+        setSections(sectionsClone);
       }
-    })
+    });
   }
-
-  // const onCardSubmit = (ISectiond: number, title: string) => {
-  //   axios({
-  //     method: 'post',
-  //     url: 'http://localhost:3001/cards',
-  //     data: { ISectiond, title }
-  //   }).then((response) => {
-  //     let sectionsClone: ISection[] = [...sections];
-  //     let targetSection = sectionsClone.find(section => section.id == ISectiond);
-
-  //     if (targetSection) {
-  //       targetSection.cards.push({
-  //         id: response.data.id,
-  //         title: response.data.title,
-  //         section_id: ISectiond
-  //       });
-  //       setSections(sectionsClone);
-  //     }
-  //   });
-  // }
 
   const handleOnDragEnd = (result: DropResult) => {
     if (!result.destination) return
