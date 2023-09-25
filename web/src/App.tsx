@@ -66,7 +66,7 @@ function App() {
       const sortedSections = response.data.sort((a: ISection, b: ISection) => a.id - b.id)
       setSections(sortedSections)
     })
-  })
+  }, [])
 
   const onCardSubmit = (sectionId: number, title: string) => {
     axios.post('http://localhost:3001/cards', { sectionId, title }).then((response) => {
