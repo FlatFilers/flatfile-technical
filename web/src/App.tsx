@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import axios from 'axios'
-import { DragDropContext, Droppable, DropResult } from 'react-beautiful-dnd'
+import { DragDropContext, Droppable, DropResult, DroppableProvided } from 'react-beautiful-dnd'
 
 import Section from './components/section'
 import { ISection } from './types/section'
@@ -91,8 +91,8 @@ function App() {
           sec.id === sourceSection.id
             ? sourceSection
             : sec.id === destinationSection.id
-            ? destinationSection
-            : sec
+              ? destinationSection
+              : sec
         )
         setSections(newSections)
 
@@ -101,21 +101,29 @@ function App() {
     }
   }
 
+  const renderDroppableSection = (provided: DroppableProvided, section: ISection, onCardSubmit: Function) => {
+    return (
+      <div {...provided.droppableProps} ref={provided.innerRef}>
+        <Section section={section} onCardSubmit={onCardSubmit} />
+        {provided.placeholder}
+      </div>
+    );
+  };
+
+  const renderBoard = (sections: ISection[], onCardSubmit: Function) => {
+    return sections.map((section: ISection) => (
+      <Droppable droppableId={String(section.id)} key={section.id}>
+        {(provided) => renderDroppableSection(provided, section, onCardSubmit)}
+      </Droppable>
+    ));
+  };
+
   return (
     <DragDropContext onDragEnd={handleOnDragEnd}>
       <BoardContainer>
-        {sections.map((section: ISection) => (
-          <Droppable droppableId={String(section.id)} key={section.id}>
-            {(provided) => (
-              <div {...provided.droppableProps} ref={provided.innerRef}>
-                <Section section={section} onCardSubmit={onCardSubmit} />
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        ))}
+        {renderBoard(sections, onCardSubmit)}
       </BoardContainer>
     </DragDropContext>
-  )
+  );
 }
 export default App
