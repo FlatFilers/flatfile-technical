@@ -42,7 +42,7 @@ function App() {
       data: { sectionId, title }
     }).then((response) => {
       let sectionsClone: ISection[] = [...sections];
-      let targetSection = sectionsClone.find(section => section.id == sectionId);
+      let targetSection = sectionsClone.find(section => section.id === sectionId);
 
       if (targetSection) {
         targetSection.cards.push({
