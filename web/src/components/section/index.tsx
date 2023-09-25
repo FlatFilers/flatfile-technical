@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Draggable, DraggableProvided, DraggableStateSnapshot } from 'react-beautiful-dnd'
 
 import Card from '../card'
 import { ISection } from '../../types/section'
@@ -37,10 +38,19 @@ const Section = ({
           <SectionTitle>{title}</SectionTitle>
         </SectionHeader>
         <CardsContainer>
-          {cards.length &&
-            cards.map((card: ICard) => {
-              return <Card key={card.id} card={card}></Card>
-            })}
+          {cards.map((card: ICard, index: number) => (
+            <Draggable key={card.id} draggableId={String(card.id)} index={index}>
+              {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.draggableProps}
+                  {...provided.dragHandleProps}
+                >
+                  <Card card={card} />
+                </div>
+              )}
+            </Draggable>
+          ))}
         </CardsContainer>
         {isTempCardActive ? (
           <CardComposerDiv>
