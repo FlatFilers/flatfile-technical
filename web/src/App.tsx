@@ -21,6 +21,25 @@ export const BoardContainer = styled.div`
   padding: 5px;
   align-items: flex-start;
 `
+const addCardToSection = (
+  sections: ISection[],
+  sectionId: number,
+  cardId: number,
+  cardTitle: string
+): ISection[] => {
+  const sectionsClone: ISection[] = [...sections];
+  const targetSection = sectionsClone.find((section) => section.id === sectionId);
+
+  if (targetSection) {
+    targetSection.cards.push({
+      id: cardId,
+      title: cardTitle,
+      section_id: sectionId,
+    });
+  }
+
+  return sectionsClone;
+};
 
 function App() {
   const [sections, setSections] = useState<ISection[]>([])
@@ -39,21 +58,17 @@ function App() {
     axios({
       method: 'post',
       url: 'http://localhost:3001/cards',
-      data: { sectionId, title }
+      data: { sectionId, title },
     }).then((response) => {
-      let sectionsClone: ISection[] = [...sections];
-      let targetSection = sectionsClone.find(section => section.id === sectionId);
-
-      if (targetSection) {
-        targetSection.cards.push({
-          id: response.data.id,
-          title: response.data.title,
-          section_id: sectionId
-        });
-        setSections(sectionsClone);
-      }
+      const updatedSections = addCardToSection(
+        sections,
+        sectionId,
+        response.data.id,
+        response.data.title
+      );
+      setSections(updatedSections);
     });
-  }
+  };
 
   const handleOnDragEnd = (result: DropResult) => {
     if (!result.destination) return
@@ -79,26 +94,24 @@ function App() {
       }
     } else {
       // Move card to another section
-      const sourceSection = sections.find((sec) => sec.id === Number(source.droppableId))
-      const destinationSection = sections.find((sec) => sec.id === Number(destination.droppableId))
+      const sourceSection = sections.find((sec) => sec.id === Number(source.droppableId));
+      const destinationSection = sections.find((sec) => sec.id === Number(destination.droppableId));
 
       if (sourceSection && destinationSection) {
-        const [movedCard] = sourceSection.cards.splice(source.index, 1)
-        destinationSection.cards.splice(destination.index, 0, movedCard)
+        const [movedCard] = sourceSection.cards.splice(source.index, 1);
 
-        // Update state with the new card positions
-        const newSections = sections.map((sec) =>
-          sec.id === sourceSection.id
-            ? sourceSection
-            : sec.id === destinationSection.id
-              ? destinationSection
-              : sec
-        )
-        setSections(newSections)
+        const updatedSections = addCardToSection(
+          sections,
+          destinationSection.id,
+          movedCard.id,
+          movedCard.title
+        );
+
+        setSections(updatedSections);
 
         // Send a request to update the backend
       }
-    }
+    };
   }
 
   const renderDroppableSection = (provided: DroppableProvided, section: ISection, onCardSubmit: Function) => {
