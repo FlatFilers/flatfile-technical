@@ -5,6 +5,7 @@ import { DragDropContext, Droppable, DropResult, DroppableProvided } from 'react
 
 import Section from './components/section'
 import { ISection } from './types/section'
+import { ICard } from './types/card'
 
 import './App.css'
 
@@ -26,9 +27,8 @@ const addCardToSection = (
   sectionId: number,
   cardId: number,
   cardTitle: string
-): ISection[] => {
-  const sectionsClone: ISection[] = [...sections];
-  const targetSection = sectionsClone.find((section) => section.id === sectionId);
+): void => {
+  const targetSection = sections.find((section) => section.id === sectionId);
 
   if (targetSection) {
     targetSection.cards.push({
@@ -37,8 +37,22 @@ const addCardToSection = (
       section_id: sectionId,
     });
   }
+};
 
-  return sectionsClone;
+const reorderCardsInSameSection = (
+  sections: ISection[],
+  sectionId: number,
+  sourceIndex: number,
+  destinationIndex: number
+): void => {
+  const targetSection = sections.find((section) => section.id === sectionId);
+
+  if (targetSection) {
+    const reorderedCards: ICard[] = Array.from(targetSection.cards);
+    const [movedCard] = reorderedCards.splice(sourceIndex, 1);
+    reorderedCards.splice(destinationIndex, 0, movedCard);
+    targetSection.cards = reorderedCards;
+  }
 };
 
 function App() {
@@ -55,43 +69,33 @@ function App() {
   })
 
   const onCardSubmit = (sectionId: number, title: string) => {
-    axios({
-      method: 'post',
-      url: 'http://localhost:3001/cards',
-      data: { sectionId, title },
-    }).then((response) => {
-      const updatedSections = addCardToSection(
-        sections,
-        sectionId,
-        response.data.id,
-        response.data.title
-      );
-      setSections(updatedSections);
+    axios.post('http://localhost:3001/cards', { sectionId, title }).then((response) => {
+      addCardToSection(sections, sectionId, response.data.id, response.data.title);
+      setSections([...sections]); // Trigger a re-render
     });
   };
 
-  const handleOnDragEnd = (result: DropResult) => {
-    if (!result.destination) return
+  const handleOnDragEnd = async (result: DropResult) => {
+    if (!result.destination) return;
 
-    const { source, destination } = result
+    const { source, destination } = result;
 
     if (source.droppableId === destination.droppableId) {
       // Reorder within the same section
-      const section = sections.find((sec) => sec.id === Number(source.droppableId))
-      if (section) {
-        const reorderedCards = Array.from(section.cards)
-        const [movedCard] = reorderedCards.splice(source.index, 1)
-        reorderedCards.splice(destination.index, 0, movedCard)
-        section.cards = reorderedCards
+      reorderCardsInSameSection(
+        sections,
+        Number(source.droppableId),
+        source.index,
+        destination.index
+      );
 
-        // Update state with new card order
-        const newSections: ISection[] = sections.map((sec) =>
-          sec.id === section.id ? section : sec
-        )
-        setSections(newSections)
+      const response = await axios.patch(`http://localhost:3001/sections/reorder`, {
+        sectionId: Number(source.droppableId),
+        sourceIndex: source.index,
+        destinationIndex: destination.index,
+      });
+      setSections([response.data]);
 
-        // Send a request to update the backend
-      }
     } else {
       // Move card to another section
       const sourceSection = sections.find((sec) => sec.id === Number(source.droppableId));
@@ -99,20 +103,19 @@ function App() {
 
       if (sourceSection && destinationSection) {
         const [movedCard] = sourceSection.cards.splice(source.index, 1);
+        destinationSection.cards.splice(destination.index, 0, movedCard);
 
-        const updatedSections = addCardToSection(
-          sections,
-          destinationSection.id,
-          movedCard.id,
-          movedCard.title
-        );
-
-        setSections(updatedSections);
-
-        // Send a request to update the backend
+        await axios.patch(`http://localhost:3001/cards/move`, {
+          cardId: movedCard.id,
+          destinationSectionId: destinationSection.id,
+          destinationIndex: destination.index,
+        });
       }
-    };
-  }
+    }
+
+    // Trigger a re-render with the modified state
+    setSections([...sections]);
+  };
 
   const renderDroppableSection = (provided: DroppableProvided, section: ISection, onCardSubmit: Function) => {
     return (
